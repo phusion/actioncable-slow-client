@@ -31,6 +31,8 @@ Rails.application.configure do
 
   config.action_mailer.perform_caching = false
 
+  config.log_level = :error
+
   # Print deprecation notices to the Rails logger.
   config.active_support.deprecation = :log
 
@@ -52,7 +54,7 @@ Rails.application.configure do
   # routes, locales, etc. This feature depends on the listen gem.
   config.file_watcher = ActiveSupport::EventedFileUpdateChecker
 
-  Rails.application.configure do 
+  Rails.application.configure do
     config.action_cable.url = "ws://localhost:3000/cable"
-  end 
+  end
 end
