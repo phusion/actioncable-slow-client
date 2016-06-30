@@ -1,4 +1,6 @@
 class SlowClientBenchmarkChannel < ApplicationCable::Channel  
+  LOTS_OF_DATA = "a" * 15_060
+
   def subscribed
     @@time_stamp_thread ||= Looper.run(1) do
       ActionCable.server.broadcast 'timestamps',
@@ -7,7 +9,7 @@ class SlowClientBenchmarkChannel < ApplicationCable::Channel
 
     @@random_data_thread ||= Looper.run(0.033) do
       ActionCable.server.broadcast 'peers',
-        peers: @@clients.map {|c| { data: rand() } }
+        peers: @@clients.map {|c| { data: rand(), more_data: LOTS_OF_DATA } }
     end
 
     @@clients ||= {}
