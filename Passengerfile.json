@@ -1,0 +1,6 @@
+{
+  "unlimited_concurrency_paths": [
+    "/cable"
+  ],
+  "log_level": 7
+}
