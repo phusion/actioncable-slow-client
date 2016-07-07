@@ -1,18 +1,22 @@
-class SlowClientBenchmarkChannel < ApplicationCable::Channel  
+class SlowClientBenchmarkChannel < ApplicationCable::Channel
   LOTS_OF_DATA = "a" * 15_060
+  INITIALIZATION_MUTEX = Mutex.new
 
   def subscribed
-    @@time_stamp_thread ||= Looper.run(1) do
-      ActionCable.server.broadcast 'timestamps',
-        time: Time.now.to_f
+    @@clients ||= Concurrent::Hash.new
+
+    INITIALIZATION_MUTEX.synchronize do
+      @@time_stamp_thread ||= Looper.run(1) do
+        ActionCable.server.broadcast 'timestamps',
+          time: Time.now.to_f
+      end
+
+      @@random_data_thread ||= Looper.run(0.033) do
+        ActionCable.server.broadcast 'peers',
+          peers: @@clients.map {|c| { data: rand, more_data: LOTS_OF_DATA } }
+      end
     end
 
-    @@random_data_thread ||= Looper.run(0.033) do
-      ActionCable.server.broadcast 'peers',
-        peers: @@clients.map {|c| { data: rand(), more_data: LOTS_OF_DATA } }
-    end
-
-    @@clients ||= {}
     @@clients[self] = {}
 
     stream_from 'timestamps'
@@ -20,9 +24,9 @@ class SlowClientBenchmarkChannel < ApplicationCable::Channel
   end
 
   def unsubscribed
-    @@clients.delete self
+    @@clients.delete(self)
   end
-end 
+end
 
 class Looper
   def self.run(step, &block)
